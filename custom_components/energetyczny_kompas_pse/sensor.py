@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.util.dt import now as ha_now
 from .const import DOMAIN, STATE_MAPPING
 
-API_URL = "https://v1.api.raporty.pse.pl/api/pdgsz?$select=znacznik,udtczas&$filter=business_date eq '{date}'"
+API_URL = "https://v2.api.raporty.pse.pl/api/pdgsz?$select=usage_fcst,dtime&$filter=business_date eq '{date}' and is_active eq true"
 
 COLOR_MAPPING = {
     0: "#006600",  # Ciemno zielony
@@ -133,8 +133,8 @@ class EnergetycznyKompasSensor(Entity):
             # Przetwarzanie danych na następny dzień
             self._next_day_data = all_data
             if all_data:
-                self._next_day_max = max((entry["znacznik"] for entry in all_data), default=None)
-                self._next_day_min = min((entry["znacznik"] for entry in all_data), default=None)
+                self._next_day_max = max((entry["usage_fcst"] for entry in all_data), default=None)
+                self._next_day_min = min((entry["usage_fcst"] for entry in all_data), default=None)
             else:
                 self._next_day_max = None
                 self._next_day_min = None
@@ -142,30 +142,30 @@ class EnergetycznyKompasSensor(Entity):
             # Przetwarzanie danych na bieżący dzień
             self._all_data = all_data
             if all_data:
-                self._daily_max = max(entry["znacznik"] for entry in all_data)
+                self._daily_max = max(entry["usage_fcst"] for entry in all_data)
             else:
                 self._daily_max = None
 
         # Ustawienie czasu ostatniej aktualizacji
-        self._attributes["last_update"] = data.get("value", [{}])[0].get("udtczas", "UNKNOWN")
+        self._attributes["last_update"] = data.get("value", [{}])[0].get("dtime", "UNKNOWN")
 
     def _update_current_state(self, now):
         """Update the current state and attributes based on previously fetched data."""
-        current_hour = now.strftime("%Y-%m-%d %H:00:00")
-        next_hour = (now + timedelta(hours=1)).strftime("%Y-%m-%d %H:00:00")
+        current_hour = now.strftime("%Y-%m-%d %H:00")
+        next_hour = (now + timedelta(hours=1)).strftime("%Y-%m-%d %H:00")
 
         matched_entry = next(
-            (entry for entry in self._all_data if entry["udtczas"] == current_hour),
+            (entry for entry in self._all_data if entry["dtime"] == current_hour),
             None
         )
         next_hour_entry = next(
-            (entry for entry in self._all_data if entry["udtczas"] == next_hour),
+            (entry for entry in self._all_data if entry["dtime"] == next_hour),
             None
         )
 
         # Ustawienie wartości currently i next_hour
-        self._currently = matched_entry["znacznik"] if matched_entry else None
-        self._next_hour = next_hour_entry["znacznik"] if next_hour_entry else None
+        self._currently = matched_entry["usage_fcst"] if matched_entry else None
+        self._next_hour = next_hour_entry["usage_fcst"] if next_hour_entry else None
 
         # Ustawienie stanu encji
         if matched_entry:
