@@ -118,7 +118,7 @@ class EnergetycznyKompasSensor(Entity):
         async with aiohttp.ClientSession() as session:
             try:
                 with async_timeout.timeout(10):
-                    response = await session.get(url)
+                    response = await session.get(url, ssl=False)
                     if response.status == 200:
                         data = await response.json()
                         self._process_api_data(data, is_next_day)
