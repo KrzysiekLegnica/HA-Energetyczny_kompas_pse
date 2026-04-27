@@ -6,7 +6,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.util.dt import now as ha_now
 from .const import DOMAIN, STATE_MAPPING
 
-API_URL = "https://v2.api.raporty.pse.pl/api/pdgsz?$select=usage_fcst,dtime&$filter=business_date eq '{date}' and is_active eq true"
+API_URL = "https://api.raporty.pse.pl/api/pdgsz?$select=usage_fcst,dtime&$filter=business_date eq '{date}' and is_active eq true"
 
 COLOR_MAPPING = {
     0: "#006600",  # Ciemno zielony
